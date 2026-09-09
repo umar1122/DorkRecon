@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dorking For Bug Bounty — Recon</title>
+<meta name="description" content="A searchable reference of Google, Shodan, and GitHub dorks for authorized security recon and bug bounty hunting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d10;
+    --panel:#12151a;
+    --panel-alt:#0e1114;
+    --border:#23272e;
+    --border-soft:#1a1e24;
+    --text:#dce0e3;
+    --text-dim:#8b929b;
+    --text-faint:#565c64;
+    --google:#e8a33d;
+    --google-dim:#4a3a20;
+    --shodan:#e15a4d;
+    --shodan-dim:#4a2620;
+    --github:#3fb68a;
+    --github-dim:#1f3a30;
+    --radius:6px;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  :focus-visible{outline:2px solid var(--text-dim); outline-offset:2px;}
+
+  /* ---------- Header ---------- */
+  header{
+    border-bottom:1px solid var(--border);
+    padding:40px 24px 28px;
+    max-width:1040px;
+    margin:0 auto;
+  }
+  .title-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  h1{
+    font-size:24px;
+    font-weight:600;
+    margin:0;
+    letter-spacing:-0.01em;
+    line-height:1.3;
+  }
+  .count{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--text-faint);
+    white-space:nowrap;
+  }
+  .count .used-n{color:var(--github);}
+  header p.tagline{
+    margin:10px 0 22px;
+    color:var(--text-dim);
+    font-size:15px;
+    max-width:62ch;
+  }
+
+  /* ---------- Domain bar ---------- */
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin-bottom:16px;
+  }
+  .domain-field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:4px 4px 4px 12px;
+  }
+  .domain-field label{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-faint);
+    white-space:nowrap;
+  }
+  #domain{
+    background:none;
+    border:none;
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:14px;
+    padding:7px 4px;
+    width:200px;
+  }
+  #domain:focus{outline:none;}
+  #set-domain{
+    background:var(--text);
+    color:var(--bg);
+    border:none;
+    font-family:var(--sans);
+    font-size:13px;
+    font-weight:500;
+    padding:8px 14px;
+    border-radius:calc(var(--radius) - 2px);
+    cursor:pointer;
+  }
+  #set-domain:hover{opacity:0.88;}
+  #clear-domain{
+    background:none;
+    border:none;
+    color:var(--text-faint);
+    font-size:13px;
+    cursor:pointer;
+    padding:4px 8px;
+  }
+  #clear-domain:hover{color:var(--text);}
+  #reset-used{
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    font-family:var(--sans);
+    font-size:13px;
+    padding:9px 14px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    margin-left:auto;
+  }
+  #reset-used:hover{color:var(--text); border-color:var(--text-faint);}
+
+  .search-wrap{
+    position:relative;
+    max-width:520px;
+  }
+  #search{
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:14px;
+    padding:11px 14px 11px 34px;
+  }
+  #search::placeholder{color:var(--text-faint);}
+  .search-wrap svg{
+    position:absolute;
+    left:11px;
+    top:50%;
+    transform:translateY(-50%);
+    width:14px;
+    height:14px;
+    stroke:var(--text-faint);
+  }
+
+  .scope-note{
+    margin-top:18px;
+    border-left:2px solid var(--text-faint);
+    padding:10px 14px;
+    font-size:13px;
+    color:var(--text-dim);
+    background:var(--panel-alt);
+    max-width:62ch;
+  }
+  .scope-note strong{color:var(--text);}
+
+  /* ---------- Engine tabs ---------- */
+  nav.engines{
+    position:sticky;
+    top:0;
+    z-index:10;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+    max-width:1040px;
+    margin:0 auto;
+    padding:0 24px;
+    display:flex;
+    gap:4px;
+  }
+  .tab{
+    background:none;
+    border:none;
+    color:var(--text-dim);
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:500;
+    padding:14px 16px 12px;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .tab .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--text-faint);
+  }
+  .tab .n{font-family:var(--mono); font-size:12px; color:var(--text-faint);}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--text);}
+  .tab[data-engine="google"].active{border-color:var(--google);}
+  .tab[data-engine="google"].active .dot{background:var(--google);}
+  .tab[data-engine="shodan"].active{border-color:var(--shodan);}
+  .tab[data-engine="shodan"].active .dot{background:var(--shodan);}
+  .tab[data-engine="github"].active{border-color:var(--github);}
+  .tab[data-engine="github"].active .dot{background:var(--github);}
+
+  /* ---------- Main ---------- */
+  main{
+    max-width:1040px;
+    margin:0 auto;
+    padding:32px 24px 80px;
+  }
+  .engine-panel{display:none;}
+  .engine-panel.active{display:block;}
+
+  .category{
+    margin-bottom:36px;
+  }
+  .category h2{
+    font-size:15px;
+    font-weight:600;
+    margin:0 0 2px;
+    padding-left:12px;
+    border-left:3px solid var(--accent, var(--text-faint));
+  }
+  .category p.cat-desc{
+    margin:2px 0 14px 15px;
+    font-size:13px;
+    color:var(--text-dim);
+  }
+
+  .dork-row{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:4px 12px;
+    align-items:start;
+    padding:14px 12px;
+    border-top:1px solid var(--border-soft);
+    transition:opacity .15s;
+  }
+  .dork-row:last-child{border-bottom:1px solid var(--border-soft);}
+  .dork-row.used{opacity:0.45;}
+
+  .used-check{
+    grid-column:1;
+    grid-row:1 / span 2;
+    display:flex;
+    align-items:flex-start;
+    padding-top:9px;
+    cursor:pointer;
+  }
+  .used-check input{
+    width:15px;
+    height:15px;
+    accent-color:var(--accent, var(--text));
+    cursor:pointer;
+  }
+
+  .dork-code{
+    font-family:var(--mono);
+    font-size:13.5px;
+    color:var(--text);
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:8px 10px;
+    overflow-x:auto;
+    white-space:pre-wrap;
+    word-break:break-word;
+    grid-column:2 / 3;
+  }
+  .dork-code .slot{
+    color:var(--accent, var(--text-faint));
+    font-weight:500;
+  }
+  .dork-code .auto-suffix{
+    color:var(--text-faint);
+  }
+  .dork-desc{
+    font-size:13.5px;
+    color:var(--text-dim);
+    grid-column:2 / 3;
+  }
+  .row-actions{
+    grid-column:3;
+    grid-row:1;
+    display:flex;
+    gap:6px;
+  }
+  .copy-btn, .open-btn{
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    font-family:var(--sans);
+    font-size:12px;
+    padding:5px 10px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .copy-btn:hover, .open-btn:hover{color:var(--text); border-color:var(--text-faint);}
+  .copy-btn.copied{color:var(--github); border-color:var(--github-dim);}
+  .open-btn{color:var(--accent, var(--text-dim)); border-color:var(--accent, var(--border));}
+
+  .no-results{
+    color:var(--text-faint);
+    font-size:14px;
+    padding:40px 12px;
+    text-align:center;
+  }
+
+  footer{
+    max-width:1040px;
+    margin:0 auto;
+    padding:24px 24px 48px;
+    border-top:1px solid var(--border);
+    color:var(--text-faint);
+    font-size:13px;
+  }
+
+  @media (max-width:640px){
+    .dork-row{grid-template-columns:auto 1fr;}
+    .dork-code, .dork-desc{grid-column:2;}
+    .row-actions{grid-column:2; grid-row:3; margin-top:4px;}
+    header{padding:28px 16px 20px;}
+    main{padding:24px 16px 60px;}
+    nav.engines{padding:0 16px;}
+    .toolbar{flex-direction:column; align-items:stretch;}
+    #reset-used{margin-left:0;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .dork-row{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>Dorking For Bug Bounty — Recon</h1>
+    <span class="count" id="total-count"></span>
+  </div>
+  <p class="tagline">A working reference of Google, Shodan, and GitHub search queries for recon during authorized penetration tests and bug bounty engagements.</p>
+
+  <div class="toolbar">
+    <div class="domain-field">
+      <label for="domain">domain</label>
+      <input id="domain" type="text" placeholder="example.com" autocomplete="off" spellcheck="false">
+      <button id="set-domain">Apply</button>
+      <button id="clear-domain">Clear</button>
+    </div>
+    <button id="reset-used">Reset used marks</button>
+  </div>
+
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input id="search" type="text" placeholder="Filter by keyword, e.g. env, mongodb, jenkins…" autocomplete="off">
+  </div>
+
+  <div class="scope-note">
+    <strong>For research and education only.</strong> Only use these dorks on your own systems, or on public bug bounty platforms (HackerOne, Bugcrowd, Intigriti, etc.) and only within that program's published scope and rules. Enter your target's domain above, hit <strong>Apply</strong>, then use each row's <strong>search</strong> button to open that dork already filled in on the right engine.
+  </div>
+</header>
+
+<nav class="engines">
+  <button class="tab active" data-engine="google"><span class="dot"></span>Google dorks<span class="n">(30)</span></button>
+  <button class="tab" data-engine="shodan"><span class="dot"></span>Shodan dorks<span class="n">(30)</span></button>
+  <button class="tab" data-engine="github"><span class="dot"></span>GitHub dorks<span class="n">(25)</span></button>
+</nav>
+
+<main>
+
+  <!-- ===================== GOOGLE ===================== -->
+  <section class="engine-panel active" data-engine="google" style="--accent:var(--google)">
+
+    <div class="category">
+      <h2>Login &amp; admin panels</h2>
+      <p class="cat-desc">Surface exposed authentication and management interfaces.</p>
+      <div class="dork-row" data-id="g1"><label class="used-check"><input type="checkbox"></label><div class="dork-code">inurl:admin intitle:login</div><div class="dork-desc">Generic admin login pages indexed by Google.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g2"><label class="used-check"><input type="checkbox"></label><div class="dork-code">inurl:/wp-admin/ -inurl:wp-content</div><div class="dork-desc">WordPress admin dashboards, excluding static asset paths.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g3"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intitle:"cPanel" inurl:2083</div><div class="dork-desc">Hosting control panel logins on the default cPanel port.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g4"><label class="used-check"><input type="checkbox"></label><div class="dork-code">inurl:/phpmyadmin/ intitle:"phpMyAdmin"</div><div class="dork-desc">Publicly reachable phpMyAdmin instances.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g5"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intitle:"Router Login" inurl:setup.cgi</div><div class="dork-desc">Consumer router admin panels left internet-facing.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Config &amp; environment files</h2>
+      <p class="cat-desc">Files that often leak credentials or connection strings.</p>
+      <div class="dork-row" data-id="g6"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:env "DB_PASSWORD"</div><div class="dork-desc">.env files with database credentials indexed directly.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g7"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:yml "database:" "password:"</div><div class="dork-desc">YAML configs (Rails, Symfony, CI) with inline DB passwords.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g8"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:xml "connectionString"</div><div class="dork-desc">.NET web.config files exposing connection strings.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g9"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:ini "password" -git</div><div class="dork-desc">Application .ini files with plaintext credentials.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g10"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:conf "define('DB_PASSWORD'"</div><div class="dork-desc">wp-config-style constants leaked in .conf files.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Backups &amp; database dumps</h2>
+      <p class="cat-desc">Archived or exported data left in web-accessible paths.</p>
+      <div class="dork-row" data-id="g11"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:sql "INSERT INTO" "password"</div><div class="dork-desc">SQL dumps containing user tables with password columns.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g12"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intitle:"index of" "backup.tar.gz"</div><div class="dork-desc">Open directory listings serving compressed backups.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g13"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:sql intext:"phpMyAdmin SQL Dump"</div><div class="dork-desc">Raw database exports generated via phpMyAdmin.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g14"><label class="used-check"><input type="checkbox"></label><div class="dork-code">inurl:backup filetype:zip</div><div class="dork-desc">Zipped backup archives sitting in public URLs.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g15"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intitle:"index of" "db.sqlite3"</div><div class="dork-desc">Exposed SQLite database files (common in Django/Flask apps).</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Sensitive documents</h2>
+      <p class="cat-desc">Internal files not meant for public access.</p>
+      <div class="dork-row" data-id="g16"><label class="used-check"><input type="checkbox"></label><div class="dork-code">site:<span class="slot">{domain}</span> filetype:pdf "confidential"</div><div class="dork-desc">Internal PDFs marked confidential, scoped to a target domain.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g17"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:xls intext:"username" intext:"password"</div><div class="dork-desc">Spreadsheets storing plaintext credential lists.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g18"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:doc "internal use only"</div><div class="dork-desc">Internal-only Word documents that leaked into the index.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g19"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intitle:"index of" "id_rsa"</div><div class="dork-desc">Directory listings exposing private SSH keys.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g20"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filetype:log intext:"password"</div><div class="dork-desc">Application logs that recorded credentials in plaintext.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Cloud storage &amp; keys</h2>
+      <p class="cat-desc">Buckets and paste sites that reveal object storage or secrets.</p>
+      <div class="dork-row" data-id="g21"><label class="used-check"><input type="checkbox"></label><div class="dork-code">site:s3.amazonaws.com "<span class="slot">{domain}</span>"</div><div class="dork-desc">S3 buckets referencing a target's name.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g22"><label class="used-check"><input type="checkbox"></label><div class="dork-code">inurl:storage.googleapis.com "<span class="slot">{domain}</span>"</div><div class="dork-desc">Google Cloud Storage objects tied to a target.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g23"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intext:"api_key" filetype:json</div><div class="dork-desc">JSON config or credential files with API keys.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g24"><label class="used-check"><input type="checkbox"></label><div class="dork-code">site:pastebin.com "<span class="slot">{domain}</span>" "password"</div><div class="dork-desc">Pastebin leaks mentioning a target domain and credentials.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g25"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intext:"AKIA" filetype:env</div><div class="dork-desc">AWS access key prefixes leaked inside .env files.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Error messages &amp; stack traces</h2>
+      <p class="cat-desc">Verbose errors that reveal stack, paths, or query structure.</p>
+      <div class="dork-row" data-id="g26"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intext:"Warning: mysql_connect()"</div><div class="dork-desc">Unhandled MySQL connection errors printed to the page.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g27"><label class="used-check"><input type="checkbox"></label><div class="dork-code">site:<span class="slot">{domain}</span> "SQL syntax" "MySQL"</div><div class="dork-desc">Pages leaking raw SQL error output, useful for injection recon.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g28"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intitle:"index of" "error_log"</div><div class="dork-desc">Open directories serving Apache/PHP error logs.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g29"><label class="used-check"><input type="checkbox"></label><div class="dork-code">site:<span class="slot">{domain}</span> intext:"stack trace" intext:"at line"</div><div class="dork-desc">Application stack traces exposed on a target's own pages.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="g30"><label class="used-check"><input type="checkbox"></label><div class="dork-code">intext:"Fatal error" filetype:log</div><div class="dork-desc">PHP fatal error logs left publicly indexable.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+  </section>
+
+  <!-- ===================== SHODAN ===================== -->
+  <section class="engine-panel" data-engine="shodan" style="--accent:var(--shodan)">
+
+    <div class="category">
+      <h2>Exposed databases</h2>
+      <p class="cat-desc">Data stores reachable without authentication.</p>
+      <div class="dork-row" data-id="s1"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"MongoDB" -authentication</div><div class="dork-desc">MongoDB instances with authentication disabled.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s2"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"Elasticsearch" port:9200</div><div class="dork-desc">Elasticsearch nodes on the default REST port.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s3"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"Redis" port:6379 -"requirepass"</div><div class="dork-desc">Redis servers without a configured password.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s4"><label class="used-check"><input type="checkbox"></label><div class="dork-code">port:5432 product:"PostgreSQL"</div><div class="dork-desc">PostgreSQL instances exposed on their default port.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s5"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"CouchDB" http.title:"Welcome"</div><div class="dork-desc">CouchDB nodes still showing the default welcome page.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Remote access &amp; management</h2>
+      <p class="cat-desc">Protocols used to administer machines remotely.</p>
+      <div class="dork-row" data-id="s6"><label class="used-check"><input type="checkbox"></label><div class="dork-code">port:3389 "Remote Desktop Protocol"</div><div class="dork-desc">Internet-facing RDP endpoints.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s7"><label class="used-check"><input type="checkbox"></label><div class="dork-code">port:5900 product:"VNC"</div><div class="dork-desc">VNC servers reachable on their default port.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s8"><label class="used-check"><input type="checkbox"></label><div class="dork-code">port:23 product:"Telnet"</div><div class="dork-desc">Devices still running unencrypted Telnet.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s9"><label class="used-check"><input type="checkbox"></label><div class="dork-code">port:5985 "WinRM"</div><div class="dork-desc">Windows Remote Management endpoints exposed externally.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s10"><label class="used-check"><input type="checkbox"></label><div class="dork-code">port:22 "SSH-2.0" org:"<span class="slot">{domain}</span>"</div><div class="dork-desc">SSH banners scoped to a specific organization.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>IoT &amp; cameras</h2>
+      <p class="cat-desc">Connected devices commonly left on defaults.</p>
+      <div class="dork-row" data-id="s11"><label class="used-check"><input type="checkbox"></label><div class="dork-code">has_screenshot:true product:"webcam"</div><div class="dork-desc">Webcam interfaces with a captured screenshot preview.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s12"><label class="used-check"><input type="checkbox"></label><div class="dork-code">port:554 has_screenshot:true</div><div class="dork-desc">RTSP video streams with a preview thumbnail.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s13"><label class="used-check"><input type="checkbox"></label><div class="dork-code">title:"Hikvision"</div><div class="dork-desc">Hikvision camera/DVR web interfaces.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s14"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"Server: IP Camera"</div><div class="dork-desc">Generic IP camera HTTP server banners.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s15"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"IP Camera" "default password"</div><div class="dork-desc">Cameras flagged by Shodan as running default credentials.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Dev, CI &amp; orchestration</h2>
+      <p class="cat-desc">Developer tooling that's easy to forget is internet-facing.</p>
+      <div class="dork-row" data-id="s16"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"Jenkins" -401</div><div class="dork-desc">Jenkins instances not returning an auth challenge.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s17"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"Docker Engine" port:2375</div><div class="dork-desc">Docker daemons exposed on the unencrypted API port.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s18"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"kubernetes" port:10250</div><div class="dork-desc">Kubelet API endpoints reachable directly.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s19"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"GitLab" http.title:"Sign in"</div><div class="dork-desc">Self-hosted GitLab login pages.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s20"><label class="used-check"><input type="checkbox"></label><div class="dork-code">title:"Portainer"</div><div class="dork-desc">Portainer Docker/Kubernetes management UIs.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Org &amp; certificate recon</h2>
+      <p class="cat-desc">Pivot from a company name or domain to its infrastructure.</p>
+      <div class="dork-row" data-id="s21"><label class="used-check"><input type="checkbox"></label><div class="dork-code">ssl:"<span class="slot">{domain}</span>"</div><div class="dork-desc">Hosts presenting a TLS cert for the target domain.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s22"><label class="used-check"><input type="checkbox"></label><div class="dork-code">org:"<span class="slot">{domain}</span>"</div><div class="dork-desc">All infrastructure Shodan attributes to a named organization.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s23"><label class="used-check"><input type="checkbox"></label><div class="dork-code">hostname:"<span class="slot">{domain}</span>" port:443</div><div class="dork-desc">HTTPS hosts matching a target hostname pattern.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s24"><label class="used-check"><input type="checkbox"></label><div class="dork-code">ssl.cert.subject.cn:"<span class="slot">{domain}</span>"</div><div class="dork-desc">Certificates whose subject CN matches the target.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s25"><label class="used-check"><input type="checkbox"></label><div class="dork-code">asn:"AS00000"</div><div class="dork-desc">All hosts within a target's autonomous system number.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Legacy &amp; vulnerable banners</h2>
+      <p class="cat-desc">Software versions with known, publicly documented issues.</p>
+      <div class="dork-row" data-id="s26"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"Apache" version:"2.2.15"</div><div class="dork-desc">Apache builds matching a specific, older version string.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s27"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"vsftpd" version:"2.3.4"</div><div class="dork-desc">A vsftpd version with a well-documented historical backdoor.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s28"><label class="used-check"><input type="checkbox"></label><div class="dork-code">product:"OpenSSH" version:"7.2"</div><div class="dork-desc">SSH daemons running an older, fingerprintable version.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s29"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"IIS/6.0"</div><div class="dork-desc">Legacy IIS 6.0 banners, long past end of support.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="s30"><label class="used-check"><input type="checkbox"></label><div class="dork-code">title:"Apache Tomcat" intitle:"Manager"</div><div class="dork-desc">Tomcat manager consoles, a common misconfiguration target.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+  </section>
+
+  <!-- ===================== GITHUB ===================== -->
+  <section class="engine-panel" data-engine="github" style="--accent:var(--github)">
+
+    <div class="category">
+      <h2>API keys &amp; tokens</h2>
+      <p class="cat-desc">Provider-specific secret formats committed by accident.</p>
+      <div class="dork-row" data-id="h1"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"AKIA" filename:.env</div><div class="dork-desc">AWS access key ID prefix inside committed .env files.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h2"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"aws_secret_access_key" -example</div><div class="dork-desc">Real AWS secret keys, filtering out obvious placeholder repos.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h3"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"Authorization: Bearer" filename:.env</div><div class="dork-desc">Hardcoded bearer tokens left in environment files.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h4"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"client_secret" extension:json</div><div class="dork-desc">OAuth client secrets committed in JSON configs.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h5"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"xoxb-" "slack"</div><div class="dork-desc">Slack bot tokens matching the xoxb- prefix.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Credentials &amp; secrets</h2>
+      <p class="cat-desc">Passwords and private keys checked in directly.</p>
+      <div class="dork-row" data-id="h6"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"DB_PASSWORD" filename:.env</div><div class="dork-desc">Database passwords stored in plaintext env files.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h7"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"define('DB_PASSWORD'" filename:config.php</div><div class="dork-desc">WordPress-style DB constants leaked in config.php.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h8"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"BEGIN RSA PRIVATE KEY"</div><div class="dork-desc">Full private key material committed to a repo.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h9"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"password" extension:sql</div><div class="dork-desc">SQL files with plaintext password columns.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h10"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:.htpasswd</div><div class="dork-desc">Apache basic-auth credential files.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Config &amp; infra files</h2>
+      <p class="cat-desc">Files that reveal internal infrastructure or deployment setup.</p>
+      <div class="dork-row" data-id="h11"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:.git-credentials</div><div class="dork-desc">Cached Git credentials stored in plaintext.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h12"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:.npmrc _auth</div><div class="dork-desc">npm registry auth tokens in .npmrc files.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h13"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:docker-compose.yml "POSTGRES_PASSWORD"</div><div class="dork-desc">Compose files with database passwords inline.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h14"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:terraform.tfvars</div><div class="dork-desc">Terraform variable files that may hold cloud secrets.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h15"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:wp-config.php</div><div class="dork-desc">WordPress core config file, often with DB credentials.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Sensitive filenames</h2>
+      <p class="cat-desc">File paths that are almost never meant to be public.</p>
+      <div class="dork-row" data-id="h16"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:id_rsa</div><div class="dork-desc">Private SSH keys committed under their default filename.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h17"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:credentials extension:json</div><div class="dork-desc">Generic credential JSON files, common in SDK exports.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h18"><label class="used-check"><input type="checkbox"></label><div class="dork-code">extension:pem "PRIVATE KEY"</div><div class="dork-desc">PEM-encoded private keys anywhere in a repo.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h19"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:.env NODE_ENV</div><div class="dork-desc">Node.js environment files, a very common leak source.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h20"><label class="used-check"><input type="checkbox"></label><div class="dork-code">filename:secrets.yml</div><div class="dork-desc">Rails-style secrets files with app keys and tokens.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+    <div class="category">
+      <h2>Company-specific recon</h2>
+      <p class="cat-desc">Narrow a search down to one organization or domain.</p>
+      <div class="dork-row" data-id="h21"><label class="used-check"><input type="checkbox"></label><div class="dork-code">org:<span class="slot">{domain}</span> filename:.env</div><div class="dork-desc">Env files across every repo under a GitHub organization.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h22"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"<span class="slot">{domain}</span>" "password" language:javascript</div><div class="dork-desc">JS source mentioning both the target domain and "password".</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h23"><label class="used-check"><input type="checkbox"></label><div class="dork-code">user:<span class="slot">{domain}</span> "api_key"</div><div class="dork-desc">API key references scoped to a specific GitHub user or org.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h24"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"<span class="slot">{domain}</span>" filename:README "internal"</div><div class="dork-desc">Internal-facing READMEs that reference the target domain.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+      <div class="dork-row" data-id="h25"><label class="used-check"><input type="checkbox"></label><div class="dork-code">"<span class="slot">{domain}</span>" extension:log</div><div class="dork-desc">Committed log files that mention the target domain.</div><div class="row-actions"><button class="copy-btn">copy</button><button class="open-btn">search</button></div></div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  Dorking For Bug Bounty — Recon — a static reference, no backend, no tracking. Your domain and used-marks are saved only in your browser's local storage. For research and education only — use only on your own systems or authorized public bug bounty programs. MIT licensed. Fork it, extend it, host it on GitHub Pages.
+</footer>
+
+<script>
+(function(){
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.engine-panel');
+  const search = document.getElementById('search');
+  const allRows = Array.from(document.querySelectorAll('.dork-row'));
+  const totalCount = document.getElementById('total-count');
+  const domainInput = document.getElementById('domain');
+  const setDomainBtn = document.getElementById('set-domain');
+  const clearDomainBtn = document.getElementById('clear-domain');
+  const resetUsedBtn = document.getElementById('reset-used');
+
+  const DOMAIN_KEY = 'dorkindex:domain';
+  const USED_KEY = 'dorkindex:used';
+
+  function loadUsed(){
+    try { return JSON.parse(localStorage.getItem(USED_KEY) || '{}'); }
+    catch(e){ return {}; }
+  }
+  function saveUsed(obj){
+    try { localStorage.setItem(USED_KEY, JSON.stringify(obj)); } catch(e){}
+  }
+
+  let usedState = loadUsed();
+
+  function updateCount(){
+    const usedN = Object.values(usedState).filter(Boolean).length;
+    totalCount.innerHTML = allRows.length + ' queries · <span class="used-n">' + usedN + ' used</span>';
+  }
+
+  // ---- checkboxes ----
+  allRows.forEach(row => {
+    const id = row.dataset.id;
+    const box = row.querySelector('.used-check input');
+    if (usedState[id]){
+      box.checked = true;
+      row.classList.add('used');
+    }
+    box.addEventListener('change', () => {
+      if (box.checked){
+        usedState[id] = true;
+        row.classList.add('used');
+      } else {
+        delete usedState[id];
+        row.classList.remove('used');
+      }
+      saveUsed(usedState);
+      updateCount();
+    });
+  });
+  updateCount();
+
+  resetUsedBtn.addEventListener('click', () => {
+    usedState = {};
+    saveUsed(usedState);
+    allRows.forEach(row => {
+      row.classList.remove('used');
+      row.querySelector('.used-check input').checked = false;
+    });
+    updateCount();
+  });
+
+  // ---- domain substitution ----
+  function applyDomain(){
+    const domain = domainInput.value.trim();
+    try { localStorage.setItem(DOMAIN_KEY, domain); } catch(e){}
+
+    allRows.forEach(row => {
+      const engine = row.closest('.engine-panel').dataset.engine;
+      const codeEl = row.querySelector('.dork-code');
+      const slot = codeEl.querySelector('.slot');
+      let suffix = codeEl.querySelector('.auto-suffix');
+
+      if (slot){
+        slot.textContent = domain || '{domain}';
+        slot.style.opacity = domain ? '1' : '0.6';
+      } else if (domain){
+        if (!suffix){
+          suffix = document.createElement('span');
+          suffix.className = 'auto-suffix';
+          codeEl.appendChild(suffix);
+        }
+        if (engine === 'google') suffix.textContent = ' site:' + domain;
+        else if (engine === 'shodan') suffix.textContent = ' hostname:' + domain;
+        else if (engine === 'github') suffix.textContent = ' "' + domain + '"';
+      } else if (suffix){
+        suffix.remove();
+      }
+    });
+  }
+
+  const savedDomain = (function(){ try { return localStorage.getItem(DOMAIN_KEY) || ''; } catch(e){ return ''; } })();
+  domainInput.value = savedDomain;
+  applyDomain();
+
+  setDomainBtn.addEventListener('click', applyDomain);
+  domainInput.addEventListener('keydown', e => { if (e.key === 'Enter') applyDomain(); });
+  clearDomainBtn.addEventListener('click', () => { domainInput.value = ''; applyDomain(); });
+
+  // ---- tabs ----
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelector('.engine-panel[data-engine="' + tab.dataset.engine + '"]').classList.add('active');
+      applyFilter();
+    });
+  });
+
+  // ---- keyword filter ----
+  function applyFilter(){
+    const q = search.value.trim().toLowerCase();
+    const activeEngine = document.querySelector('.tab.active').dataset.engine;
+    const panel = document.querySelector('.engine-panel[data-engine="' + activeEngine + '"]');
+    let visibleAny = false;
+
+    panel.querySelectorAll('.category').forEach(cat => {
+      let catHasVisible = false;
+      cat.querySelectorAll('.dork-row').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const match = !q || text.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) catHasVisible = true;
+      });
+      cat.style.display = catHasVisible ? '' : 'none';
+      if (catHasVisible) visibleAny = true;
+    });
+
+    let noRes = panel.querySelector('.no-results');
+    if (!visibleAny){
+      if (!noRes){
+        noRes = document.createElement('div');
+        noRes.className = 'no-results';
+        noRes.textContent = 'No matching dorks in this category. Try another keyword or switch tabs.';
+        panel.appendChild(noRes);
+      }
+    } else if (noRes){
+      noRes.remove();
+    }
+  }
+  search.addEventListener('input', applyFilter);
+
+  // ---- copy ----
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.closest('.dork-row').querySelector('.dork-code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1400);
+      });
+    });
+  });
+
+  // ---- open search on the right engine ----
+  const engineUrls = {
+    google: q => 'https://www.google.com/search?q=' + encodeURIComponent(q),
+    shodan: q => 'https://www.shodan.io/search?query=' + encodeURIComponent(q),
+    github: q => 'https://github.com/search?type=code&q=' + encodeURIComponent(q)
+  };
+  document.querySelectorAll('.open-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('.dork-row');
+      const engine = row.closest('.engine-panel').dataset.engine;
+      const query = row.querySelector('.dork-code').textContent.trim();
+      window.open(engineUrls[engine](query), '_blank', 'noopener');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
