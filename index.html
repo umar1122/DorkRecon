@@ -10,21 +10,21 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0d10;
-    --panel:#12151a;
-    --panel-alt:#0e1114;
-    --border:#23272e;
-    --border-soft:#1a1e24;
-    --text:#dce0e3;
-    --text-dim:#8b929b;
-    --text-faint:#565c64;
-    --google:#e8a33d;
-    --google-dim:#4a3a20;
-    --shodan:#e15a4d;
-    --shodan-dim:#4a2620;
-    --github:#3fb68a;
-    --github-dim:#1f3a30;
-    --radius:6px;
+    --bg:#f5f7fb;
+    --panel:#ffffff;
+    --panel-alt:#f0f4f8;
+    --border:#dfe5ec;
+    --border-soft:#e9eef4;
+    --text:#172033;
+    --text-dim:#667085;
+    --text-faint:#98a2b3;
+    --google:#4285f4;
+    --google-dim:#dbeafe;
+    --shodan:#f97316;
+    --shodan-dim:#ffedd5;
+    --github:#16a34a;
+    --github-dim:#dcfce7;
+    --radius:12px;
     --mono:'IBM Plex Mono', ui-monospace, monospace;
     --sans:'IBM Plex Sans', system-ui, sans-serif;
   }
@@ -351,6 +351,93 @@
     html{scroll-behavior:auto;}
     .dork-row{transition:none;}
   }
+
+/* ---------- Modern light UI ---------- */
+body{
+  background:
+    radial-gradient(circle at 10% -10%, rgba(66,133,244,.10), transparent 28%),
+    radial-gradient(circle at 90% 0%, rgba(22,163,74,.08), transparent 24%),
+    var(--bg);
+}
+header{
+  max-width:1180px;
+  padding:54px 28px 34px;
+  border-bottom:0;
+}
+.title-row h1{
+  font-size:clamp(28px,4vw,42px);
+  letter-spacing:-.035em;
+  color:#101828;
+}
+header p.tagline{font-size:16px;line-height:1.7;max-width:72ch;}
+.toolbar{margin-top:26px;gap:12px}
+.domain-field,.search-wrap #search,.domain-field{
+  background:rgba(255,255,255,.92);
+  box-shadow:0 6px 20px rgba(16,24,40,.05);
+}
+.domain-field{border-color:#d7dee8}
+#set-domain{
+  background:#172033;color:#fff;border-radius:9px;padding:9px 15px;
+}
+#clear-domain{color:#667085}
+#reset-used{
+  background:#fff;border-color:#dfe5ec;border-radius:10px;
+  box-shadow:0 4px 14px rgba(16,24,40,.04);
+}
+.search-wrap{max-width:720px;margin-top:16px}
+#search{
+  background:#fff!important;border-color:#dfe5ec!important;
+  border-radius:12px!important;padding:14px 16px 14px 42px!important;
+  box-shadow:0 8px 24px rgba(16,24,40,.06);
+}
+.search-wrap svg{left:15px}
+.scope-note{
+  margin-top:22px;border:1px solid #dfe5ec;border-left:4px solid #4285f4;
+  border-radius:12px;background:rgba(255,255,255,.75);max-width:78ch;
+  box-shadow:0 5px 18px rgba(16,24,40,.04);
+}
+nav.engines{
+  max-width:none;padding:0 max(24px,calc((100% - 1180px)/2 + 28px));
+  background:rgba(245,247,251,.86);backdrop-filter:blur(14px);
+  border-color:#dfe5ec;gap:8px;
+}
+.tab{border-radius:10px 10px 0 0;padding:15px 18px}
+.tab.active{background:#fff}
+main{max-width:1180px;padding:34px 28px 90px}
+.category{
+  background:rgba(255,255,255,.88);
+  border:1px solid #e3e8ef;border-radius:16px;
+  padding:20px 20px 6px;margin-bottom:22px;
+  box-shadow:0 10px 28px rgba(16,24,40,.045);
+}
+.category h2{font-size:16px;padding-left:13px}
+.dork-row{
+  grid-template-columns:auto minmax(0,1fr) auto;
+  padding:14px 4px;gap:6px 14px;
+}
+.dork-code{
+  background:#f8fafc;border-color:#e5eaf0;border-radius:9px;
+  padding:9px 11px;color:#1d2939;
+}
+.dork-row:hover{background:#fbfcfe;border-radius:10px}
+.dork-row.used{opacity:.58}
+.copy-btn,.open-btn{
+  border-radius:8px;background:#fff;border-color:#dfe5ec;
+}
+.open-btn{
+  background:#f0f7ff;border-color:#bfdbfe;color:#2563eb;
+}
+.copy-btn:hover,.open-btn:hover{transform:translateY(-1px);box-shadow:0 3px 9px rgba(16,24,40,.07)}
+.no-results{padding:55px 12px}
+footer{max-width:1180px;border-color:#dfe5ec;padding:26px 28px 50px}
+@media(max-width:640px){
+  header{padding:34px 16px 24px}
+  nav.engines{padding:0 12px;overflow-x:auto}
+  .tab{white-space:nowrap}
+  main{padding:24px 14px 60px}
+  .category{padding:16px 14px 4px}
+  .dork-row{grid-template-columns:auto 1fr}
+}
 </style>
 </head>
 <body>
@@ -722,7 +809,31 @@
       noRes.remove();
     }
   }
-  search.addEventListener('input', applyFilter);
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    applyFilter();
+
+    // Automatically mark every dork currently matched by the search field as used.
+    if (q) {
+      allRows.forEach(row => {
+        const engine = row.closest('.engine-panel').dataset.engine;
+        const activeEngine = document.querySelector('.tab.active').dataset.engine;
+        if (engine !== activeEngine) return;
+        const matches = row.textContent.toLowerCase().includes(q);
+        if (matches) {
+          const id = row.dataset.id;
+          const box = row.querySelector('.used-check input');
+          if (!box.checked) {
+            box.checked = true;
+            row.classList.add('used');
+            usedState[id] = true;
+          }
+        }
+      });
+      saveUsed(usedState);
+      updateCount();
+    }
+  });
 
   // ---- copy ----
   document.querySelectorAll('.copy-btn').forEach(btn => {
@@ -748,6 +859,13 @@
       const row = btn.closest('.dork-row');
       const engine = row.closest('.engine-panel').dataset.engine;
       const query = row.querySelector('.dork-code').textContent.trim();
+      const id = row.dataset.id;
+      const box = row.querySelector('.used-check input');
+      box.checked = true;
+      row.classList.add('used');
+      usedState[id] = true;
+      saveUsed(usedState);
+      updateCount();
       window.open(engineUrls[engine](query), '_blank', 'noopener');
     });
   });
