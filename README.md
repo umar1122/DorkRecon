@@ -4,7 +4,7 @@
 ![Type: Static site](https://img.shields.io/badge/type-static%20site-e8a33d.svg)
 ![Made with](https://img.shields.io/badge/made%20with-HTML%20%2B%20CSS%20%2B%20JS-e15a4d.svg)
 
-**Live site:** replace this line with your GitHub Pages link once it's deployed, e.g. `https://yourusername.github.io/dorking-for-bug-bounty-recon/`
+**Live site:** replace this line with your GitHub Pages link once it's deployed, e.g. `https://umar1122.github.io/DorkRecon/`
 
 A simple webpage that lists useful **Google, Shodan, and GitHub search tricks** (called "dorks") that security researchers use to find exposed files, weak logins, and leaked secrets — as part of legal bug bounty hunting.
 
@@ -48,15 +48,6 @@ Bug bounty hunters use dorks as a starting point to find things a company forgot
 6. Tick the checkbox on dorks you've already tried, so you don't repeat yourself next time.
 
 ---
-
-## Hosting it yourself on GitHub Pages
-
-1. Create a new GitHub repository and upload `index.html`, `README.md`, and `LICENSE`.
-2. Go to **Settings → Pages** in that repository.
-3. Under **Source**, choose **Deploy from a branch**, pick `main` and `/ (root)`, then save.
-4. Wait a minute, then visit the link GitHub gives you — your site is live.
-5. Come back and paste that link into the **Live site** line at the top of this README.
-
 ---
 
 ## ⚠️ Important: use this responsibly
