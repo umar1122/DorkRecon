@@ -4,7 +4,7 @@
 ![Type: Static site](https://img.shields.io/badge/type-static%20site-e8a33d.svg)
 ![Made with](https://img.shields.io/badge/made%20with-HTML%20%2B%20CSS%20%2B%20JS-e15a4d.svg)
 
-**Live site:** replace this line with your GitHub Pages link once it's deployed, e.g. `https://umar1122.github.io/DorkRecon/`
+**Live site:** replace this line with your GitHub Pages link once it's deployed, e.g. `[My Website] https://umar1122.github.io/DorkRecon/`
 
 A simple webpage that lists useful **Google, Shodan, and GitHub search tricks** (called "dorks") that security researchers use to find exposed files, weak logins, and leaked secrets — as part of legal bug bounty hunting.
 
